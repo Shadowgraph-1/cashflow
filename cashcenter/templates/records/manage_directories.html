@@ -1,0 +1,132 @@
+{% extends 'base.html' %}
+{% block title %}Управление справочниками{% endblock %}
+{% block content %}
+<h2>Управление справочниками</h2>
+<!-- Статусы -->
+<h3>Статусы</h3>
+<form method="post" action="{% url 'add_status' %}" class="mb-3">
+    {% csrf_token %}
+    <div class="input-group">
+        <input type="text" name="name" class="form-control" placeholder="Новый статус">
+        <button type="submit" class="btn btn-primary">Добавить</button>
+    </div>
+</form>
+<table class="table table-striped mb-5">
+    <thead>
+        <tr>
+            <th>Название</th>
+            <th>Действия</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for status in statuses %}
+            <tr>
+                <td>{{ status.name }}</td>
+                <td>
+                    <a href="{% url 'delete_status' status.id %}" class="btn btn-sm btn-danger">Удалить</a>
+                </td>
+            </tr>
+        {% endfor %}
+    </tbody>
+</table>
+
+<!-- Типы -->
+<h3>Типы</h3>
+<form method="post" action="{% url 'add_type' %}" class="mb-3">
+    {% csrf_token %}
+    <div class="input-group">
+        <input type="text" name="name" class="form-control" placeholder="Новый тип">
+        <button type="submit" class="btn btn-primary">Добавить</button>
+    </div>
+</form>
+<table class="table table-striped mb-5">
+    <thead>
+        <tr>
+            <th>Название</th>
+            <th>Действия</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for type in types %}
+            <tr>
+                <td>{{ type.name }}</td>
+                <td>
+                    <a href="{% url 'delete_type' type.id %}" class="btn btn-sm btn-danger">Удалить</a>
+                </td>
+            </tr>
+        {% endfor %}
+    </tbody>
+</table>
+
+<!-- Категории -->
+<h3>Категории</h3>
+<form method="post" action="{% url 'add_category' %}" class="mb-3">
+    {% csrf_token %}
+    <div class="input-group">
+        <input type="text" name="name" class="form-control" placeholder="Новая категория">
+        <select name="type" class="form-control">
+            <option value="">Выберите тип</option>
+            {% for type in types %}
+                <option value="{{ type.id }}">{{ type.name }}</option>
+            {% endfor %}
+        </select>
+        <button type="submit" class="btn btn-primary">Добавить</button>
+    </div>
+</form>
+<table class="table table-striped mb-5">
+    <thead>
+        <tr>
+            <th>Название</th>
+            <th>Тип</th>
+            <th>Действия</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for category in categories %}
+            <tr>
+                <td>{{ category.name }}</td>
+                <td>{{ category.type.name }}</td>
+                <td>
+                    <a href="{% url 'delete_category' category.id %}" class="btn btn-sm btn-danger">Удалить</a>
+                </td>
+            </tr>
+        {% endfor %}
+    </tbody>
+</table>
+
+<!-- Подкатегории -->
+<h3>Подкатегории</h3>
+<form method="post" action="{% url 'add_subcategory' %}" class="mb-3">
+    {% csrf_token %}
+    <div class="input-group">
+        <input type="text" name="name" class="form-control" placeholder="Новая подкатегория">
+        <select name="category" class="form-control">
+            <option value="">Выберите категорию</option>
+            {% for category in categories %}
+                <option value="{{ category.id }}">{{ category.name }}</option>
+            {% endfor %}
+        </select>
+        <button type="submit" class="btn btn-primary">Добавить</button>
+    </div>
+</form>
+<table class="table table-striped">
+    <thead>
+        <tr>
+            <th>Название</th>
+            <th>Категория</th>
+            <th>Действия</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for subcategory in subcategories %}
+            <tr>
+                <td>{{ subcategory.name }}</td>
+                <td>{{ subcategory.category.name }}</td>
+                <td>
+                    <a href="{% url 'delete_subcategory' subcategory.id %}" class="btn btn-sm btn-danger">Удалить</a>
+                </td>
+            </tr>
+        {% endfor %}
+    </tbody>
+</table>
+{% endblock %}

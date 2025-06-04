@@ -1,0 +1,147 @@
+{% extends 'base.html' %}
+{% block title %}Добавить запись{% endblock %}
+{% block content %}
+<h2>Добавить запись</h2>
+{% if error %}
+    <div class="alert alert-danger">{{ error }}</div>
+{% endif %}
+<form method="post">
+    {% csrf_token %}
+    <div class="row">
+        <div class="col-md-6 mb-3">
+            <label for="id_date">Дата:</label>
+            <input type="date" name="date" id="id_date" class="form-control" value="{{ form.date.value|default_if_none:today }}">
+        </div>
+        <div class="col-md-6 mb-3">
+            <label for="id_status">Статус:</label>
+            <select name="status" id="id_status" class="form-control">
+                <option value="">Выберите статус</option>
+                {% for status in statuses %}
+                    <option value="{{ status.id }}">{{ status.name }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        <div class="col-md-6 mb-3">
+            <label for="id_type">Тип:</label>
+            <select name="type" id="id_type" class="form-control">
+                <option value="">Выберите тип</option>
+                {% for type in types %}
+                    <option value="{{ type.id }}">{{ type.name }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        <div class="col-md-6 mb-3">
+            <label for="id_category">Категория:</label>
+            <select name="category" id="id_category" class="form-control">
+                <option value="">Выберите категорию</option>
+                {% for category in categories %}
+                    <option value="{{ category.id }}" data-type="{{ category.type.id }}">{{ category.name }} ({{ category.type.name }})</option>
+                {% endfor %}
+            </select>
+        </div>
+        <div class="col-md-6 mb-3">
+            <label for="id_subcategory">Подкатегория:</label>
+            <select name="subcategory" id="id_subcategory" class="form-control">
+                <option value="">---------</option>
+            </select>
+        </div>
+        <div class="col-md-6 mb-3">
+            <label for="id_amount">Сумма:</label>
+            <input type="number" name="amount" id="id_amount" step="0.01" class="form-control">
+        </div>
+        <div class="col-md-12 mb-3">
+            <label for="id_comment">Комментарий:</label>
+            <textarea name="comment" id="id_comment" class="form-control" rows="3"></textarea>
+        </div>
+        <div class="col-md-12">
+            <button type="submit" class="btn btn-primary">Сохранить</button>
+            <a href="{% url 'index' %}" class="btn btn-secondary">Отмена</a>
+        </div>
+    </div>
+</form>
+{% endblock %}
+{% block extra_js %}
+<script>
+(function($) {
+    $(document).ready(function() {
+        var categoryField = $('#id_category');
+        var subcategoryField = $('#id_subcategory');
+        var typeField = $('#id_type');
+        var amountField = $('#id_amount');
+        var form = $('form');
+
+        function updateSubcategories() {
+            var categoryId = categoryField.val();
+            if (categoryId) {
+                $.ajax({
+                    url: '/admin/get_subcategories/',
+                    data: { category_id: categoryId },
+                    success: function(data) {
+                        console.log('Полученные подкатегории:', data);
+                        subcategoryField.empty();
+                        subcategoryField.append('<option value="">---------</option>');
+                        $.each(data, function(index, item) {
+                            subcategoryField.append(
+                                $('<option>').val(item.id).text(item.name)
+                            );
+                        });
+                    },
+                    error: function(xhr, status, error) {
+                        console.error('Ошибка AJAX:', error, xhr.status, xhr.responseText);
+                        alert('Ошибка загрузки подкатегорий. Пожалуйста, войдите в админку.');
+                    }
+                });
+            } else {
+                subcategoryField.empty();
+                subcategoryField.append('<option value="">---------</option>');
+            }
+        }
+
+        function filterCategories() {
+            var typeId = typeField.val();
+            categoryField.empty();
+            categoryField.append('<option value="">Выберите категорию</option>');
+            if (typeId) {
+                $('option', categoryField).each(function() {
+                    if ($(this).data('type') == typeId || $(this).val() == "") {
+                        $(this).show();
+                    } else {
+                        $(this).hide();
+                    }
+                });
+            }
+            updateSubcategories();
+        }
+
+        // Клиентская валидация
+        form.on('submit', function(event) {
+            var amount = amountField.val();
+            var type = typeField.val();
+            var category = categoryField.val();
+
+            if (!amount || amount <= 0) {
+                event.preventDefault();
+                alert('Сумма должна быть больше 0!');
+                return false;
+            }
+
+            if (!type) {
+                event.preventDefault();
+                alert('Пожалуйста, выберите тип!');
+                return false;
+            }
+
+            if (!category) {
+                event.preventDefault();
+                alert('Пожалуйста, выберите категорию!');
+                return false;
+            }
+        });
+
+        typeField.change(filterCategories);
+        categoryField.change(updateSubcategories);
+        updateSubcategories();
+    });
+})(jQuery);
+</script>
+{% endblock %}

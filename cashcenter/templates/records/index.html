@@ -1,0 +1,108 @@
+{% extends 'base.html' %}
+{% block title %}Главная{% endblock %}
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h2>Записи ДДС</h2>
+    <div class="text-muted">
+        <small id="current-datetime"></small>
+    </div>
+</div>
+<!-- Фильтры -->
+<form method="get" class="mb-4">
+    <div class="row">
+        <div class="col-md-3">
+            <label>Дата (с):</label>
+            <input type="date" name="date_from" class="form-control" value="{{ request.GET.date_from }}">
+        </div>
+        <div class="col-md-3">
+            <label>Дата (по):</label>
+            <input type="date" name="date_to" class="form-control" value="{{ request.GET.date_to }}">
+        </div>
+        <div class="col-md-2">
+            <label>Статус:</label>
+            <select name="status" class="form-control">
+                <option value="">Все</option>
+                {% for status in statuses %}
+                    <option value="{{ status.id }}" {% if request.GET.status == status.id|stringformat:"s" %}selected{% endif %}>{{ status.name }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        <div class="col-md-2">
+            <label>Тип:</label>
+            <select name="type" class="form-control">
+                <option value="">Все</option>
+                {% for type in types %}
+                    <option value="{{ type.id }}" {% if request.GET.type == type.id|stringformat:"s" %}selected{% endif %}>{{ type.name }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        <div class="col-md-2">
+            <button type="submit" class="btn btn-primary mt-4">Фильтровать</button>
+        </div>
+    </div>
+</form>
+<!-- Таблица -->
+<table class="table table-striped">
+    <thead>
+        <tr>
+            <th>Дата</th>
+            <th>Статус</th>
+            <th>Тип</th>
+            <th>Категория</th>
+            <th>Подкатегория</th>
+            <th>Сумма</th>
+            <th>Комментарий</th>
+            <th>Действия</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for record in records %}
+            <tr>
+                <td>{{ record.date }}</td>
+                <td>{{ record.status.name }}</td>
+                <td>{{ record.type.name }}</td>
+                <td>{{ record.category.name }}</td>
+                <td>{{ record.subcategory.name }}</td>
+                <td>{{ record.amount }} руб.</td>
+                <td>{{ record.comment }}</td>
+                <td>
+                    <a href="{% url 'edit_record' record.id %}" class="btn btn-sm btn-warning">Редактировать</a>
+                    <a href="{% url 'delete_record' record.id %}" class="btn btn-sm btn-danger">Удалить</a>
+                </td>
+            </tr>
+        {% empty %}
+            <tr>
+                <td colspan="8">Нет записей.</td>
+            </tr>
+        {% endfor %}
+    </tbody>
+</table>
+{% endblock %}
+{% block extra_js %}
+<script>
+(function() {
+    function updateDateTime() {
+        const options = {
+            hour: '2-digit',
+            minute: '2-digit',
+            hour12: true,
+            timeZoneName: 'short',
+            weekday: 'long',
+            month: 'long',
+            day: '2-digit',
+            year: 'numeric'
+        };
+        const now = new Date();
+        const formatted = now.toLocaleString('en-US', options);
+        const parts = formatted.split(',');
+        const time = parts[1].trim().split(' ')[0] + ' ' + parts[1].trim().split(' ')[1];
+        const timezone = parts[1].trim().split(' ')[2];
+        const date = parts[0] + ', ' + parts[2].trim();
+        document.getElementById('current-datetime').textContent = `${time} ${timezone} on ${date}`;
+    }
+
+    updateDateTime();
+    setInterval(updateDateTime, 60000);
+})();
+</script>
+{% endblock %}
